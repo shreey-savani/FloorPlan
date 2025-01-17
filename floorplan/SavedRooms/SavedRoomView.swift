@@ -23,6 +23,7 @@ struct SavedRoomView: View {
     }
     
     private func loadRoom() {
+        print("loading in savedroom view")
         let defaults = UserDefaults.standard
         if let data = defaults.data(forKey: roomID) {
             let decoder = JSONDecoder()
