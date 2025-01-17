@@ -1,15 +1,7 @@
-//
-//  RoomCaptureModel.swift
-//  RoomPlan 2D
-//
-//  Created by Dennis van Oosten on 24/02/2023.
-//
-
 import Foundation
 import RoomPlan
 
-
-class RoomCaptureModel: RoomCaptureSessionDelegate {
+class RoomCaptureModel: NSObject, RoomCaptureSessionDelegate {
     
     // Singleton
     static let shared = RoomCaptureModel()
@@ -22,22 +14,15 @@ class RoomCaptureModel: RoomCaptureSessionDelegate {
     private let roomBuilder: RoomBuilder
     
     // The final scan result
-    var finalRoom: CapturedRoom?
-    
-    // Required functions to conform to NSCoding protocol
-    func encode(with coder: NSCoder) {
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("Error when initializing RoomCaptureModel")
-    }
+    var finalRoom: RoomPlan.CapturedRoom?
     
     // Private initializer. Accessed by shared.
-    private init() {
+    private override init() {
         roomCaptureView = RoomCaptureView(frame: .zero)
         captureSessionConfig = RoomCaptureSession.Configuration()
         roomBuilder = RoomBuilder(options: [.beautifyObjects])
         
+        super.init()
         roomCaptureView.captureSession.delegate = self
     }
         
@@ -69,24 +54,35 @@ class RoomCaptureModel: RoomCaptureSessionDelegate {
     }
     
     // MARK: - Save Captured Room
-        private func saveCapturedRoom(_ room: CapturedRoom) {
-            let encoder = JSONEncoder()
-            do {
-                let roomID = "Room\(Date().timeIntervalSince1970)"
-                let roomData = try encoder.encode(room)
+    private func saveCapturedRoom(_ room: CapturedRoom) {
+        let encoder = JSONEncoder()
+        do {
+            let roomID = "Room\(Date().timeIntervalSince1970)"
+            let roomData = try encoder.encode(room)
+            
+            // Save room data to UserDefaults
+            let defaults = UserDefaults.standard
+            defaults.set(roomData, forKey: roomID)
+            
+            var savedRoomIDs = defaults.array(forKey: "savedRoomIDs") as? [String] ?? []
+            savedRoomIDs.append(roomID)
+            defaults.set(savedRoomIDs, forKey: "savedRoomIDs")
+            
+            print("Room saved with ID: \(roomID)")
+            
+            // Get directory for UserDefaults
+            if let bundleIdentifier = Bundle.main.bundleIdentifier {
+                let debugDirectory = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first!
+                    .appendingPathComponent("Preferences")
+                    .appendingPathComponent("\(bundleIdentifier).plist")
                 
-                let defaults = UserDefaults.standard
-                defaults.set(roomData, forKey: roomID)
-                
-                var savedRoomIDs = defaults.array(forKey: "savedRoomIDs") as? [String] ?? []
-                savedRoomIDs.append(roomID)
-                defaults.set(savedRoomIDs, forKey: "savedRoomIDs")
-                
-                print("Room saved with ID: \(roomID)")
-            } catch {
-                print("Error saving captured room: \(error)")
+                print("Debug: UserDefaults data stored in directory: \(debugDirectory.path)")
             }
+        } catch {
+            print("Error saving captured room: \(error)")
         }
+}
+
     
     
 }

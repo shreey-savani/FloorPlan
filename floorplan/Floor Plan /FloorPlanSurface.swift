@@ -191,7 +191,6 @@ class FloorPlanSurface: SKNode {
         path.addLine(to: CGPoint(x: pointA.x, y: pointA.y + surfacedWidth))
         path.move(to: CGPoint(x: pointB.x, y: pointB.y - surfacedWidth))
         path.addLine(to: CGPoint(x: pointB.x, y: pointB.y + surfacedWidth))
-        
         // Main line with gap for the label
         path.move(to: pointA)
         path.addLine(to: CGPoint(x: -dimensionLabelWidth / 2, y: -dimensionLineDistFromSurface))
@@ -203,7 +202,6 @@ class FloorPlanSurface: SKNode {
 
     private func createDimLabel() -> SKLabelNode {
         let dimTotalInches = CGFloat(self.capturedSurface.dimensions.x) * CGFloat(metersToInchesFactor)
-
         let feet = Int(dimTotalInches / 12)
         let inches = Int(round(dimTotalInches)) % 12
         
@@ -231,5 +229,6 @@ class FloorPlanSurface: SKNode {
         
         return shapeNode
     }
+    
     
 }

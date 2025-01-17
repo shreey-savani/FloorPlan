@@ -29,9 +29,34 @@
 		0E203B752D34FC3000772030 /* floorplanUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = floorplanUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0E845F8C2D392A8F0008E6A1 /* Exceptions for "floorplan" folder in "floorplan" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				.swift,
+				util.swift,
+			);
+			target = 0E203B5A2D34FC2B00772030 /* floorplan */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		0E845F8E2D39303E0008E6A1 /* Exceptions for "floorplan" folder in "Compile Sources" phase from "floorplan" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 0E203B572D34FC2B00772030 /* Sources */;
+			membershipExceptions = (
+				.swift,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		0E203B5D2D34FC2B00772030 /* floorplan */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0E845F8C2D392A8F0008E6A1 /* Exceptions for "floorplan" folder in "floorplan" target */,
+				0E845F8E2D39303E0008E6A1 /* Exceptions for "floorplan" folder in "Compile Sources" phase from "floorplan" target */,
+			);
 			path = floorplan;
 			sourceTree = "<group>";
 		};
@@ -401,6 +426,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "using the lodar sensor";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = photos;
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "all photos";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -432,6 +459,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "using the lodar sensor";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = photos;
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "all photos";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

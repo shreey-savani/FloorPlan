@@ -27,12 +27,22 @@ struct WelcomeView: View {
             } else {
                 ScrollView {
                     ForEach(savedRoomIDs, id: \.self) { id in
-                        NavigationLink(destination: SavedRoomView(roomID: id)) {
-                            Text("Scan \(id)")
-                                .padding()
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color.gray.opacity(0.1))
-                                .cornerRadius(8)
+                        HStack {
+                            NavigationLink(destination: SavedRoomView(roomID: id)) {
+                                Text("Scan \(id)")
+                                    .padding()
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(Color.gray.opacity(0.1))
+                                    .cornerRadius(8)
+                            }
+                            
+                            Button(action: {
+                                deleteRoom(id: id)
+                            }) {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                                    .padding()
+                            }
                         }
                         Divider()
                     }
@@ -49,5 +59,18 @@ struct WelcomeView: View {
         if let savedIDs = defaults.array(forKey: "savedRoomIDs") as? [String] {
             savedRoomIDs = savedIDs
         }
+    }
+    
+    // MARK: - Delete Room
+    private func deleteRoom(id: String) {
+        // Remove the ID from the list
+        savedRoomIDs.removeAll { $0 == id }
+        
+        // Update UserDefaults
+        let defaults = UserDefaults.standard
+        defaults.set(savedRoomIDs, forKey: "savedRoomIDs")
+        
+        // Optionally, remove the corresponding data from UserDefaults
+        defaults.removeObject(forKey: id)
     }
 }
