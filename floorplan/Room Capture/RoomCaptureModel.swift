@@ -52,37 +52,4 @@ class RoomCaptureModel: NSObject, RoomCaptureSessionDelegate {
             finalRoom = try! await roomBuilder.capturedRoom(from: data)
         }
     }
-    
-    // MARK: - Save Captured Room
-    private func saveCapturedRoom(_ room: CapturedRoom) {
-        let encoder = JSONEncoder()
-        do {
-            let roomID = "Room\(Date().timeIntervalSince1970)"
-            let roomData = try encoder.encode(room)
-            
-            // Save room data to UserDefaults
-            let defaults = UserDefaults.standard
-            defaults.set(roomData, forKey: roomID)
-            
-            var savedRoomIDs = defaults.array(forKey: "savedRoomIDs") as? [String] ?? []
-            savedRoomIDs.append(roomID)
-            defaults.set(savedRoomIDs, forKey: "savedRoomIDs")
-            
-            print("Room saved with ID: \(roomID)")
-            
-            // Get directory for UserDefaults
-            if let bundleIdentifier = Bundle.main.bundleIdentifier {
-                let debugDirectory = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first!
-                    .appendingPathComponent("Preferences")
-                    .appendingPathComponent("\(bundleIdentifier).plist")
-                
-                print("Debug: UserDefaults data stored in directory: \(debugDirectory.path)")
-            }
-        } catch {
-            print("Error saving captured room: \(error)")
-        }
-}
-
-    
-    
 }

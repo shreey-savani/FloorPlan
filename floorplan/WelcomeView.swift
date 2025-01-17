@@ -28,14 +28,6 @@ struct WelcomeView: View {
                 ScrollView {
                     ForEach(savedRoomIDs, id: \.self) { id in
                         HStack {
-                            NavigationLink(destination: SavedRoomView(roomID: id)) {
-                                Text("Scan \(id)")
-                                    .padding()
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .background(Color.gray.opacity(0.1))
-                                    .cornerRadius(8)
-                            }
-                            
                             Button(action: {
                                 deleteRoom(id: id)
                             }) {
