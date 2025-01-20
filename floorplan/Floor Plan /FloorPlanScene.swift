@@ -40,9 +40,11 @@ class FloorPlanScene: SKScene {
         self.backgroundColor = .lightGray
         
         setupCamera()
-        setupDismissButton()
+        
         renderSurfaces()
         renderObjects()
+        
+        setupDismissButton()
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -157,7 +159,7 @@ class FloorPlanScene: SKScene {
     // MARK: - Save SKN File
     
     func saveSceneAsSKN(to directory: URL) {
-        let sknFileURL = directory.appendingPathComponent("FloorPlanScene.skn")
+        let sknFileURL = directory.appendingPathComponent("FloorPlanScene.sks")
         
         do {
             let data = try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false)

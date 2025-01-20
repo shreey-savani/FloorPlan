@@ -110,21 +110,21 @@ class RoomCaptureModel: NSObject, RoomCaptureSessionDelegate {
         return roomDirectoryURL
     }
     
-    // Save the .skn file in the directory created earlier
-//    func saveSKNFile(floorPlanScene: FloorPlanScene) {
+    // Save the .sks file in the directory created earlier
+//    func sav.sksFile(floorPlanScene: FloorPlanScene) {
 //        guard let roomDirectoryURL = self.roomDirectoryURL else {
 //            print("Error: Room directory URL is unavailable.")
 //            return
 //        }
 //        
-//        let sknFileURL = roomDirectoryURL.appendingPathComponent("FloorPlanScene.skn")
+//        let.sksFileURL = roomDirectoryURL.appendingPathComponent("FloorPlanScene.sks")
 //        
 //        do {
 //            let data = try NSKeyedArchiver.archivedData(withRootObject: floorPlanScene, requiringSecureCoding: false)
-//            try data.write(to: sknFileURL)
-//            print("Scene successfully saved to \(sknFileURL.path)")
+//            try data.write(to:.sksFileURL)
+//            print("Scene successfully saved to \.sksFileURL.path)")
 //        } catch {
-//            print("Failed to save .skn file: \(error)")
+//            print("Failed to save .sks file: \(error)")
 //        }
 //    }
     
