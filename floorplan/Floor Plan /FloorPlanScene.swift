@@ -52,8 +52,9 @@ class FloorPlanScene: SKScene {
     override func didMove(to view: SKView) {
         configurePanGesture()
         configurePinchGesture()
-        saveSceneAsSKN(to: FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!)
-            
+        let directoryURL = RoomCaptureModel.shared.roomDirectoryURL 
+
+        saveSceneAsSKN(to: directoryURL!)
     }
     
     // MARK: - Camera Setup
@@ -156,17 +157,14 @@ class FloorPlanScene: SKScene {
     // MARK: - Save SKN File
     
     func saveSceneAsSKN(to directory: URL) {
-        let fileURL = directory.appendingPathComponent("FloorPlanScene.skn")
-        let usdzFileURL = directory.appendingPathComponent("room.usdz")
-            
-            print("USDZ file URL: \(usdzFileURL)")
-            do {
-                let data = try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false)
-                try data.write(to: usdzFileURL)
-                print("Scene successfully saved to \(usdzFileURL.path)")
-            } catch {
-                print("Failed to save scene: \(error)")
-            }
+        let sknFileURL = directory.appendingPathComponent("FloorPlanScene.skn")
+        
+        do {
+            let data = try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false)
+            try data.write(to: sknFileURL)
+            print("Scene successfully saved to \(sknFileURL.path)")
+        } catch {
+            print("Failed to save scene: \(error)")
         }
+    }
 }
-

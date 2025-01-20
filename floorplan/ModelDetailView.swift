@@ -142,20 +142,17 @@ struct SpriteKitContainer: UIViewRepresentable {
         let roomDirectoryURL = sharedDirectoryURL.appendingPathComponent(roomID)
         let sknFileURL = roomDirectoryURL.appendingPathComponent("FloorPlanScene.skn")
         print("Checking .skn file path: \(sknFileURL.path)")
+        
         if FileManager.default.fileExists(atPath: sknFileURL.path) {
             // Load the SKScene from the saved .skn file
             if let scene = loadScene(from: sknFileURL) {
-                scene.scaleMode = .aspectFill  // Set scale mode to aspectFill for proper rendering
+                scene.scaleMode = .aspectFill // Set scale mode to aspectFill for proper rendering
                 skView.presentScene(scene)
+            } else {
+                print("Failed to load the SKScene from .skn file.")
             }
         } else {
-            if FileManager.default.fileExists(atPath: sknFileURL.path) {
-                // Proceed to load the scene
-            } else {
-                print("File does not exist at \(sknFileURL.path)")
-            }
-
- 
+            print("File does not exist at \(sknFileURL.path)")
         }
         
         return skView
@@ -178,6 +175,5 @@ struct SpriteKitContainer: UIViewRepresentable {
             print("Failed to load scene from .skn file: \(error)")
             return nil
         }
-        
     }
 }

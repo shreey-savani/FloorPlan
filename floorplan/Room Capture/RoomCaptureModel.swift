@@ -1,5 +1,6 @@
 import Foundation
 import RoomPlan
+
 class RoomCaptureModel: NSObject, RoomCaptureSessionDelegate {
     
     // Singleton
@@ -11,7 +12,7 @@ class RoomCaptureModel: NSObject, RoomCaptureSessionDelegate {
     // Capture and room builder configuration
     private let captureSessionConfig: RoomCaptureSession.Configuration
     private let roomBuilder: RoomBuilder
-    
+    private var captureDirectory: URL?
     
     // The final scan result
     var finalRoom: RoomPlan.CapturedRoom?
@@ -19,7 +20,7 @@ class RoomCaptureModel: NSObject, RoomCaptureSessionDelegate {
     // Room directory URL accessible externally
     var roomDirectoryURL: URL?
     
-    // Private initializer. Accessed by shared.
+    // Private initializer
     private override init() {
         roomCaptureView = RoomCaptureView(frame: .zero)
         captureSessionConfig = RoomCaptureSession.Configuration()
@@ -29,11 +30,12 @@ class RoomCaptureModel: NSObject, RoomCaptureSessionDelegate {
         roomCaptureView.captureSession.delegate = self
     }
     
-    // Start and stop the capture session
+    // Start the capture session
     func startSession() {
         roomCaptureView.captureSession.run(configuration: captureSessionConfig)
     }
     
+    // Stop the capture session
     func stopSession() {
         roomCaptureView.captureSession.stop()
     }
@@ -51,38 +53,34 @@ class RoomCaptureModel: NSObject, RoomCaptureSessionDelegate {
         
         Task {
             do {
+                // Build the captured room from the data
                 finalRoom = try await roomBuilder.capturedRoom(from: data)
                 print("Room successfully captured.")
                 
-                // Generate a unique ID and save the captured room
+                // Save the .usdz file
                 let uniqueID = UUID().uuidString
-                if let roomDirectoryURL = saveCapturedRoom(with: uniqueID) {
-                    // Here, we do not save an additional file anymore
-                    print("Captured room directory URL: \(roomDirectoryURL.path)")
-                    self.roomDirectoryURL = roomDirectoryURL // Expose the room directory URL
+                if let directoryURL = saveUSDZFile(with: uniqueID) {
+                    print("Captured room directory URL: \(directoryURL.path)")
+                    self.roomDirectoryURL = directoryURL // Expose the room directory URL for the next step
                 }
-                
             } catch {
                 print("Failed to process captured room data: \(error)")
             }
         }
     }
     
-    // Save the captured room as a .usdz file in a UUID-based directory
-    // Save the captured room as a .usdz and .skn file in a UUID-based directory
-    func saveCapturedRoom(with id: String) -> URL? {
+    // Save the .usdz file in a UUID-based directory
+    private func saveUSDZFile(with id: String) -> URL? {
         guard let finalRoom = finalRoom else {
             print("No captured room data available to save.")
             return nil
         }
         
-        // Access the shared directory
         guard let sharedDirectoryURL = RoomCaptureModel.getSharedDirectoryURL() else {
             print("Shared directory is unavailable.")
             return nil
         }
         
-        // Create a subdirectory for this capture using the UUID
         let roomDirectoryURL = sharedDirectoryURL.appendingPathComponent(id)
         let fileManager = FileManager.default
         
@@ -96,39 +94,40 @@ class RoomCaptureModel: NSObject, RoomCaptureSessionDelegate {
             }
         }
         
-        // File URL for the .usdz file
         let usdzFileURL = roomDirectoryURL.appendingPathComponent("room.usdz")
-        let sknFileURL = roomDirectoryURL.appendingPathComponent("FloorPlanScene.skn")
         
         do {
-            // Save the .usdz file
             try finalRoom.export(to: usdzFileURL)
             print("Captured room data successfully saved to \(usdzFileURL.path)")
             
-            // Save the .skn file (assuming you have a `FloorPlanScene` object to save)
-            if let floorPlanScene = self.floorPlanScene {  // You should pass the `FloorPlanScene` instance somehow
-                let data = try NSKeyedArchiver.archivedData(withRootObject: floorPlanScene, requiringSecureCoding: false)
-                try data.write(to: sknFileURL)
-                print("Scene successfully saved to \(sknFileURL.path)")
-            }
-            
-            // Save the ID and directory path in UserDefaults
+            // Save the directory path to UserDefaults
             let defaults = UserDefaults.standard
-            var savedIDs = defaults.array(forKey: "savedRoomIDs") as? [String] ?? []
-            if !savedIDs.contains(id) {
-                savedIDs.append(id)
-            }
-            defaults.set(savedIDs, forKey: "savedRoomIDs")
             defaults.set(roomDirectoryURL.absoluteString, forKey: id)
-            
         } catch {
             print("Failed to save captured room data: \(error)")
         }
         
-        // Return the directory URL to be used for any further use
         return roomDirectoryURL
     }
-
+    
+    // Save the .skn file in the directory created earlier
+//    func saveSKNFile(floorPlanScene: FloorPlanScene) {
+//        guard let roomDirectoryURL = self.roomDirectoryURL else {
+//            print("Error: Room directory URL is unavailable.")
+//            return
+//        }
+//        
+//        let sknFileURL = roomDirectoryURL.appendingPathComponent("FloorPlanScene.skn")
+//        
+//        do {
+//            let data = try NSKeyedArchiver.archivedData(withRootObject: floorPlanScene, requiringSecureCoding: false)
+//            try data.write(to: sknFileURL)
+//            print("Scene successfully saved to \(sknFileURL.path)")
+//        } catch {
+//            print("Failed to save .skn file: \(error)")
+//        }
+//    }
+    
     // Get the shared directory URL for saving rooms
     static func getSharedDirectoryURL() -> URL? {
         let fileManager = FileManager.default
