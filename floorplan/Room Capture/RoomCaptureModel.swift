@@ -1,26 +1,30 @@
 import Foundation
 import RoomPlan
+import simd
+
+// Custom structure to represent a wall (start, end, length)
+struct Wall {
+    var start: SIMD3<Float>
+    var end: SIMD3<Float>
+    var length: Float
+    var category: CapturedRoom.Surface.Category // Added category for additional context
+}
 
 class RoomCaptureModel: NSObject, RoomCaptureSessionDelegate {
     
-    // Singleton
     static let shared = RoomCaptureModel()
     
-    // The capture view
     let roomCaptureView: RoomCaptureView
-    
-    // Capture and room builder configuration
     private let captureSessionConfig: RoomCaptureSession.Configuration
     private let roomBuilder: RoomBuilder
     private var captureDirectory: URL?
     
-    // The final scan result
-    var finalRoom: RoomPlan.CapturedRoom?
-    var floorPlanScene: FloorPlanScene?
-    // Room directory URL accessible externally
+    var finalRoom: CapturedRoom?
     var roomDirectoryURL: URL?
     
-    // Private initializer
+    // Store the walls' data
+    var walls: [Wall] = [] // Array to store wall data
+    
     private override init() {
         roomCaptureView = RoomCaptureView(frame: .zero)
         captureSessionConfig = RoomCaptureSession.Configuration()
@@ -30,17 +34,14 @@ class RoomCaptureModel: NSObject, RoomCaptureSessionDelegate {
         roomCaptureView.captureSession.delegate = self
     }
     
-    // Start the capture session
     func startSession() {
         roomCaptureView.captureSession.run(configuration: captureSessionConfig)
     }
     
-    // Stop the capture session
     func stopSession() {
         roomCaptureView.captureSession.stop()
     }
     
-    // Handle session end and generate the final captured room
     func captureSession(
         _ session: RoomCaptureSession,
         didEndWith data: CapturedRoomData,
@@ -57,16 +58,72 @@ class RoomCaptureModel: NSObject, RoomCaptureSessionDelegate {
                 finalRoom = try await roomBuilder.capturedRoom(from: data)
                 print("Room successfully captured.")
                 
-                // Save the .usdz file
+                // Extract and process wall data
+                extractWallData()
+                
+                // Optionally save the .usdz file
                 let uniqueID = UUID().uuidString
                 if let directoryURL = saveUSDZFile(with: uniqueID) {
                     print("Captured room directory URL: \(directoryURL.path)")
-                    self.roomDirectoryURL = directoryURL // Expose the room directory URL for the next step
+                    self.roomDirectoryURL = directoryURL
                 }
             } catch {
                 print("Failed to process captured room data: \(error)")
             }
         }
+    }
+    
+    // Extract wall data from the captured room
+    private func extractWallData() {
+        guard let capturedRoom = finalRoom else {
+            print("No captured room data available.")
+            return
+        }
+
+        // Loop through the room's surfaces (which represent walls)
+        for (index, surface) in capturedRoom.walls.enumerated() {
+            print("Surface \(index) - Category: \(surface.category)")  // Debug surface category
+            print("Surface \(index) - Full Surface Data: \(surface)")  // Debug full surface object
+
+            if surface.category == .wall {
+                let boundary = surface.polygonCorners // Access polygon corners
+                print("Surface \(index) - Boundary points: \(boundary)")  // Debug the boundary points
+
+                if boundary.count > 1 {
+                    let start = boundary.first!
+                    let end = boundary.last!
+                    let length = distanceBetween(start: start, end: end)
+
+                    print("Surface \(index) - Start point: \(start), End point: \(end)")
+                    print("Surface \(index) - Calculated wall length: \(length) meters")
+
+                    let wall = Wall(start: start, end: end, length: length, category: surface.category)
+                    walls.append(wall)
+
+                    print("Wall \(index) from \(start) to \(end) with length \(length) meters, Category: \(surface.category)")
+                } else {
+                    print("Surface \(index) does not have enough points to form a valid wall.")
+                }
+            } else {
+                print("Surface \(index) is not a wall, skipping.")
+            }
+        }
+
+        print("Total number of walls captured: \(walls.count)")
+        if walls.isEmpty {
+            print("No valid walls were extracted.")
+        } else {
+            for (index, wall) in walls.enumerated() {
+                print("Wall \(index) - Start: \(wall.start), End: \(wall.end), Length: \(wall.length), Category: \(wall.category)")
+            }
+        }
+    }
+    // Helper function to calculate distance between two points (SIMD3<Float>)
+    private func distanceBetween(start: SIMD3<Float>, end: SIMD3<Float>) -> Float {
+        let dx = end.x - start.x
+        let dy = end.y - start.y
+        let dz = end.z - start.z
+        return sqrt(dx * dx + dy * dy + dz * dz)
     }
     
     // Save the .usdz file in a UUID-based directory
@@ -109,24 +166,6 @@ class RoomCaptureModel: NSObject, RoomCaptureSessionDelegate {
         
         return roomDirectoryURL
     }
-    
-    // Save the .sks file in the directory created earlier
-//    func sav.sksFile(floorPlanScene: FloorPlanScene) {
-//        guard let roomDirectoryURL = self.roomDirectoryURL else {
-//            print("Error: Room directory URL is unavailable.")
-//            return
-//        }
-//        
-//        let.sksFileURL = roomDirectoryURL.appendingPathComponent("FloorPlanScene.sks")
-//        
-//        do {
-//            let data = try NSKeyedArchiver.archivedData(withRootObject: floorPlanScene, requiringSecureCoding: false)
-//            try data.write(to:.sksFileURL)
-//            print("Scene successfully saved to \.sksFileURL.path)")
-//        } catch {
-//            print("Failed to save .sks file: \(error)")
-//        }
-//    }
     
     // Get the shared directory URL for saving rooms
     static func getSharedDirectoryURL() -> URL? {
