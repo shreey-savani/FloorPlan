@@ -54,8 +54,8 @@ class FloorPlanScene: SKScene {
     override func didMove(to view: SKView) {
         configurePanGesture()
         configurePinchGesture()
-        let directoryURL = RoomCaptureModel.shared.roomDirectoryURL 
-
+        setupDismissButton()
+        let directoryURL = RoomCaptureModel.shared.roomDirectoryURL
         saveSceneAsSKN(to: directoryURL!)
     }
     
