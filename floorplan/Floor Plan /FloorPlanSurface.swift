@@ -68,15 +68,15 @@ class FloorPlanSurface: SKNode {
         // Draw the right surface
         switch capturedSurface.category {
         case .door:
-            nuli()
+            nulll()
         case .opening:
-            nuli()
+            nulll()
         case .wall:
             drawWall()
         case .window:
-            nuli()
+            nulll()
         case .floor:
-            nuli()
+            nulll()
         @unknown default:
             drawWall()
         }
@@ -87,7 +87,7 @@ class FloorPlanSurface: SKNode {
     }
     
     // MARK: - Draw
-    private func nuli(){
+    private func nulll(){
         
     }
 

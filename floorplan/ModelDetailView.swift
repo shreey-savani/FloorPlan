@@ -28,7 +28,7 @@ struct ModelDetailView: View {
             switch selectedView {
             case .quickLook:
                 VStack {
-                    if let previewURL = previewURL {
+                    if let previewURL = previewURL, FileManager.default.fileExists(atPath: previewURL.path) {
                         QuickLookPreview(url: previewURL)
                     } else {
                         Text("Loading model...")
@@ -48,7 +48,7 @@ struct ModelDetailView: View {
                     .padding()
                 }
             case .spriteKit:
-                SpriteKitView()
+                SpriteKitView(roomID: roomID)
             }
         }
         .navigationTitle(roomID)
@@ -57,15 +57,19 @@ struct ModelDetailView: View {
 
     // MARK: - Load Preview URL
     private func loadPreviewURL() {
-        let defaults = UserDefaults.standard
-        if let filePath = defaults.string(forKey: roomID),
-           let fileURL = URL(string: filePath) {
+        guard let sharedDirectoryURL = RoomCaptureModel.getSharedDirectoryURL() else {
+            print("Shared directory not found.")
+            return
+        }
+
+        let directoryURL = sharedDirectoryURL.appendingPathComponent(roomID)
+        let fileURL = directoryURL.appendingPathComponent("room.usdz")
+
+        if FileManager.default.fileExists(atPath: fileURL.path) {
             previewURL = fileURL
-            print(previewURL?.pathExtension ?? "No extension")
-            if let previewURL = previewURL {
-                print("Preview file exists: \(FileManager.default.fileExists(atPath: previewURL.path))")
-                print("Preview URL: \(previewURL)")
-            }
+            print("Preview file loaded successfully: \(fileURL)")
+        } else {
+            print("room.usdz file not found at \(fileURL.path)")
         }
     }
 
@@ -111,22 +115,65 @@ struct QuickLookPreview: UIViewControllerRepresentable {
 
 // MARK: - SpriteKit View
 struct SpriteKitView: View {
+    let roomID: String
+    
     var body: some View {
-        SpriteKitContainer()
+        SpriteKitContainer(roomID: roomID)
             .edgesIgnoringSafeArea(.all)
     }
 }
 
 struct SpriteKitContainer: UIViewRepresentable {
+    let roomID: String
+
     func makeUIView(context: Context) -> SKView {
         let skView = SKView()
-        let scene = SKScene(size: CGSize(width: 400, height: 400))
-        scene.backgroundColor = .blue // Customize the background
-        skView.presentScene(scene)
+        
+        // Set debugging options for FPS and Node count
+        skView.showsFPS = true
+        skView.showsNodeCount = true
+        
+        // Get the directory for the saved room and load the .skn file
+        guard let sharedDirectoryURL = RoomCaptureModel.getSharedDirectoryURL() else {
+            print("Shared directory not found.")
+            return skView
+        }
+        
+        let roomDirectoryURL = sharedDirectoryURL.appendingPathComponent(roomID)
+        let sknFileURL = roomDirectoryURL.appendingPathComponent("FloorPlanScene.sks")
+        print("Checking .skn file path: \(sknFileURL.path)")
+        
+        if FileManager.default.fileExists(atPath: sknFileURL.path) {
+            // Load the SKScene from the saved .skn file
+            if let scene = loadScene(from: sknFileURL) {
+                scene.scaleMode = .aspectFill // Set scale mode to aspectFill for proper rendering
+                skView.presentScene(scene)
+            } else {
+                print("Failed to load the SKScene from .sks file.")
+            }
+        } else {
+            print("File does not exist at \(sknFileURL.path)")
+        }
+        
         return skView
     }
 
-    func updateUIView(_ uiView: SKView, context: Context) {
-        // Update your SpriteKit view if necessary
+    func updateUIView(_ uiView: SKView, context: Context) {}
+
+    private func loadScene(from url: URL) -> SKScene? {
+        do {
+            let data = try Data(contentsOf: url)
+            
+            // Using the new unarchiving method for iOS 12 and above
+            if let scene = try NSKeyedUnarchiver.unarchivedObject(ofClass: SKScene.self, from: data) {
+                return scene
+            } else {
+                print("Failed to unarchive SKScene from data")
+                return nil
+            }
+        } catch {
+            print("Failed to load scene from .sks file: \(error)")
+            return nil
+        }
     }
 }

@@ -49,9 +49,16 @@ struct RoomCaptureScanView: View {
         
         // Show the floor plan in full screen
         .fullScreenCover(isPresented: $isShowingFloorPlan) {
-            SpriteView(scene: FloorPlanScene(capturedRoom: model.finalRoom!))
-                .ignoresSafeArea()
+            if let finalRoom = model.finalRoom {
+                SpriteView(scene: FloorPlanScene(capturedRoom: finalRoom, roomCaptureModel: nil))
+                    .ignoresSafeArea()
+            } else {
+                // Handle the case where finalRoom is nil
+                Text("No room data available")
+                    .foregroundColor(.red)
+            }
         }
+
     }
     
     private func startSession() {
